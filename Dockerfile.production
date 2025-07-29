@@ -7,17 +7,18 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python packages step by step for better reliability
+# Install Python packages step by step with specific versions to avoid conflicts
 RUN pip install --upgrade pip
 
-# Install core packages first
-RUN pip install --no-cache-dir streamlit
-RUN pip install --no-cache-dir pandas
-RUN pip install --no-cache-dir plotly
-RUN pip install --no-cache-dir influxdb-client
-RUN pip install --no-cache-dir numpy
-RUN pip install --no-cache-dir streamlit-autorefresh
-RUN pip install --no-cache-dir requests
+# Install core dependencies first with compatible versions
+RUN pip install --no-cache-dir "altair>=4.0.0,<6.0.0"
+RUN pip install --no-cache-dir "streamlit>=1.28.0,<1.30.0"
+RUN pip install --no-cache-dir "pandas>=2.0.0,<2.1.0"
+RUN pip install --no-cache-dir "numpy>=1.24.0,<1.25.0"
+RUN pip install --no-cache-dir "plotly>=5.17.0"
+RUN pip install --no-cache-dir "influxdb-client>=1.38.0"
+RUN pip install --no-cache-dir "streamlit-autorefresh>=0.0.1"
+RUN pip install --no-cache-dir "requests>=2.31.0"
 
 # Copy application files
 COPY dashboard.py .

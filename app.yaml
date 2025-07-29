@@ -5,7 +5,7 @@ services:
   github:
     repo: Mugabe-Hillary/smart-campus-dashboard
     branch: main
-  run_command: streamlit run dashboard.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true
+  run_command: streamlit run dashboard.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true --server.enableCORS=false
   environment_slug: python
   instance_count: 1
   instance_size_slug: basic-xxs
@@ -13,6 +13,8 @@ services:
   - key: DASHBOARD_PASSWORD
     value: your_secure_password_here
     type: SECRET
+  - key: PYTHONUNBUFFERED
+    value: "1"
   http_port: 8080
   routes:
   - path: /
