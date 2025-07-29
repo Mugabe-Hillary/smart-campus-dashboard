@@ -1,6 +1,15 @@
 # dashboard.py - Updated for Cloud InfluxDB
 
 import streamlit as st
+
+# --- Page Configuration (MUST BE FIRST) ---
+st.set_page_config(
+    page_title="Smart Campus Dashboard",
+    page_icon="🏫",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -27,21 +36,13 @@ def get_influx_client():
         client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
         return client
     except Exception as e:
-        st.error(f"Failed to connect to InfluxDB: {e}")
+        # Don't use st.error here as it causes issues with page config
         return None
 
 
 # Get client and query API
 client = get_influx_client()
 query_api = client.query_api() if client else None
-
-# --- Page Configuration ---
-st.set_page_config(
-    page_title="Smart Campus Dashboard",
-    page_icon="🏫",
-    layout="wide",
-    initial_sidebar_state="collapsed",
-)
 
 # Custom CSS for better styling and responsiveness
 st.markdown(
