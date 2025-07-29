@@ -160,19 +160,23 @@ def check_password():
                 key="password",
                 placeholder="Enter dashboard password",
             )
-            st.info("💡 Default password: cisco1234 (change via DASHBOARD_PASSWORD env variable)")
-            
+            st.info(
+                "💡 Default password: cisco1234 (change via DASHBOARD_PASSWORD env variable)"
+            )
+
             st.markdown("---")
             st.markdown("### 🌟 Features")
-            st.markdown("""
+            st.markdown(
+                """
             - 📊 **Real-time monitoring** from IoT sensors
             - 🌡️ **Environmental tracking** (temperature, humidity)  
             - 💡 **Classroom analytics** (light levels, occupancy)
             - 🔒 **Security management** (motion, RFID access)
             - 📱 **Mobile responsive** design
             - ⚡ **Auto-refresh** capabilities
-            """)
-        
+            """
+            )
+
         return False
     elif not st.session_state["password_correct"]:
         st.text_input(
@@ -339,23 +343,26 @@ def check_data_freshness(df_list):
     """Check if data is fresh (updated within last 10 minutes)."""
     if not any(not df.empty for df in df_list):
         return False, "No data available"
-    
+
     latest_times = []
     for df in df_list:
-        if not df.empty and hasattr(df.index, 'max'):
+        if not df.empty and hasattr(df.index, "max"):
             latest_times.append(df.index.max())
-    
+
     if not latest_times:
         return False, "No valid timestamps found"
-    
+
     latest_time = max(latest_times)
     now = pd.Timestamp.now(tz=latest_time.tz if latest_time.tz else None)
     time_diff = now - latest_time
-    
+
     # Check if data is older than 10 minutes
     if time_diff.total_seconds() > 600:  # 10 minutes = 600 seconds
-        return False, f"Last update: {latest_time.strftime('%H:%M:%S')} ({time_diff.total_seconds()/60:.1f} min ago)"
-    
+        return (
+            False,
+            f"Last update: {latest_time.strftime('%H:%M:%S')} ({time_diff.total_seconds()/60:.1f} min ago) - Showing 24hr history",
+        )
+
     return True, f"Live data (last update: {latest_time.strftime('%H:%M:%S')})"
 
 
@@ -365,18 +372,27 @@ def display_data_status(is_fresh, message, conn_status):
     if not conn_status:
         st.markdown(
             '<div class="status-banner status-error">🔴 Database Connection Lost - Unable to fetch live data</div>',
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
     elif not is_fresh:
         st.markdown(
             f'<div class="status-banner status-warning">⚠️ Data Not Live - {message}</div>',
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
-        st.info("💡 **Dashboard showing historical data** - Live sensors may be offline or experiencing connectivity issues. Data will automatically refresh when sensors come back online.")
+        st.info(
+            "💡 **Dashboard showing historical data** - Live sensors may be offline or experiencing connectivity issues. Data will automatically refresh when sensors come back online."
+        )
+        st.markdown(
+            f"""
+        📅 **Historical Period:** Past 24 hours  
+        ⏰ **Data Age:** {message}  
+        🔄 **Auto-refresh:** {'Enabled' if st.session_state.auto_refresh else 'Disabled'}
+        """
+        )
     else:
         st.markdown(
             f'<div class="status-banner status-success live-indicator">✅ Live Data Active - {message}</div>',
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
 
@@ -389,7 +405,9 @@ if not check_password():
 
 # Initialize session state for settings
 if "time_range" not in st.session_state:
-    st.session_state.time_range = "-1h"
+    st.session_state.time_range = (
+        "-24h"  # Default to 24 hours for better historical view
+    )
 if "auto_refresh" not in st.session_state:
     st.session_state.auto_refresh = True
 
@@ -404,11 +422,12 @@ with st.sidebar:
         st.success(f"✅ {conn_msg}")
     else:
         st.error(f"❌ {conn_msg}")
-    
+
     # Data freshness info (will be updated after data fetch)
     st.subheader("📊 Data Status")
     data_status_placeholder = st.empty()
-    st.caption("⏰ Clock icon indicates data older than 10 minutes")
+    st.caption("⏰ Shows 24-hour history when live data unavailable (>10min old)")
+    st.caption("🔄 Auto-refresh attempts to restore live connection")
 
     # Settings section
     st.subheader("Settings")
@@ -416,7 +435,7 @@ with st.sidebar:
         "Last 15 Minutes": "-15m",
         "Last Hour": "-1h",
         "Last 6 Hours": "-6h",
-        "Last 24 Hours": "-1d",
+        "Last 24 Hours": "-24h",  # Changed from -1d to -24h for consistency
         "Last Week": "-7d",
     }
 
@@ -426,7 +445,7 @@ with st.sidebar:
         index=(
             list(time_ranges.values()).index(st.session_state.time_range)
             if st.session_state.time_range in time_ranges.values()
-            else 1
+            else 3  # Default to "Last 24 Hours" (index 3)
         ),
     )
     st.session_state.time_range = time_ranges[selected_range]
@@ -485,22 +504,22 @@ with col3:
 with st.spinner("🔄 Loading sensor data..."):
     progress_bar = st.progress(0)
     status_text = st.empty()
-    
+
     status_text.text("Fetching environment data...")
     progress_bar.progress(25)
     df_env, env_error = fetch_data_from_db("environment", st.session_state.time_range)
-    
+
     status_text.text("Fetching classroom data...")
     progress_bar.progress(50)
     df_class, class_error = fetch_data_from_db("classroom", st.session_state.time_range)
-    
+
     status_text.text("Fetching security data...")
     progress_bar.progress(75)
     df_sec, sec_error = fetch_data_from_db("security", st.session_state.time_range)
-    
+
     status_text.text("Processing data...")
     progress_bar.progress(100)
-    
+
     # Clear progress indicators
     progress_bar.empty()
     status_text.empty()
@@ -520,22 +539,31 @@ with data_status_placeholder:
 if not all(df.empty for df in [df_env, df_class, df_sec]):
     with st.expander("📈 Quick Data Summary", expanded=False):
         summary_col1, summary_col2, summary_col3 = st.columns(3)
-        
+
         with summary_col1:
-            if not df_env.empty and 'temperature' in df_env.columns:
+            if not df_env.empty and "temperature" in df_env.columns:
                 st.metric("Avg Temperature", f"{df_env['temperature'].mean():.1f}°C")
-                st.metric("Temperature Range", f"{df_env['temperature'].max() - df_env['temperature'].min():.1f}°C")
-        
+                st.metric(
+                    "Temperature Range",
+                    f"{df_env['temperature'].max() - df_env['temperature'].min():.1f}°C",
+                )
+
         with summary_col2:
-            if not df_class.empty and 'light_level' in df_class.columns:
-                st.metric("Avg Light Level", f"{df_class['light_level'].mean():.0f} lux")
+            if not df_class.empty and "light_level" in df_class.columns:
+                st.metric(
+                    "Avg Light Level", f"{df_class['light_level'].mean():.0f} lux"
+                )
                 st.metric("Light Variation", f"{df_class['light_level'].std():.0f} lux")
-        
+
         with summary_col3:
             total_records = sum(len(df) for df in [df_env, df_class, df_sec])
             st.metric("Total Data Points", f"{total_records:,}")
-            if not df_sec.empty and 'motion_detected' in df_sec.columns:
-                motion_events = df_sec['motion_detected'].sum() if 'motion_detected' in df_sec.columns else 0
+            if not df_sec.empty and "motion_detected" in df_sec.columns:
+                motion_events = (
+                    df_sec["motion_detected"].sum()
+                    if "motion_detected" in df_sec.columns
+                    else 0
+                )
                 st.metric("Motion Events", f"{motion_events}")
 
 # --- Enhanced Live Status with Smart Alerts ---
@@ -560,12 +588,12 @@ with col1:
         else "N/A"
     )
     temp_status, temp_icon = evaluate_status(temp_val, temp_thresholds)
-    
+
     # Add data freshness indicator to the display
     temp_display = f"{temp_val}°C" if temp_val != "N/A" else "N/A"
     if not is_fresh and temp_val != "N/A":
         temp_display += " ⏰"
-        
+
     st.metric("🌡️ Temperature", temp_display, delta=None)
     st.write(f"{temp_icon} Status")
 
@@ -576,11 +604,11 @@ with col2:
         else "N/A"
     )
     hum_status, hum_icon = evaluate_status(hum_val, hum_thresholds)
-    
+
     hum_display = f"{hum_val}%" if hum_val != "N/A" else "N/A"
     if not is_fresh and hum_val != "N/A":
         hum_display += " ⏰"
-        
+
     st.metric("💧 Humidity", hum_display)
     st.write(f"{hum_icon} Status")
 
@@ -591,11 +619,11 @@ with col3:
         else "N/A"
     )
     light_status, light_icon = evaluate_status(light_val, light_thresholds)
-    
+
     light_display = f"{light_val} lux" if light_val != "N/A" else "N/A"
     if not is_fresh and light_val != "N/A":
         light_display += " ⏰"
-        
+
     st.metric("💡 Light Level", light_display)
     st.write(f"{light_icon} Status")
 
@@ -608,7 +636,7 @@ with col4:
     motion_val = "🔴 Detected" if motion_detected else "🟢 Clear"
     if not is_fresh and latest_sec is not None:
         motion_val += " ⏰"
-        
+
     st.metric("🚶 Motion", motion_val)
 
     # RFID status
@@ -766,28 +794,36 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     st.markdown("#### 📊 Dashboard Info")
-    st.markdown(f"""
+    st.markdown(
+        f"""
     - **Version:** 2.1
     - **Data Range:** {selected_range}
+    - **Default Period:** Past 24 Hours
     - **Records:** {len(df_env) + len(df_class) + len(df_sec):,}
-    """)
+    """
+    )
 
 with col2:
     st.markdown("#### 🔧 System Status")
-    st.markdown(f"""
+    st.markdown(
+        f"""
     - **Database:** {'🟢 Connected' if conn_status else '🔴 Disconnected'}
     - **Data:** {'🟢 Live' if is_fresh else '⏰ Historical'}
     - **Auto-refresh:** {'🟢 On' if st.session_state.auto_refresh else '🔴 Off'}
-    """)
+    """
+    )
 
 with col3:
     st.markdown("#### ⏰ Timestamps")
-    st.markdown(f"""
+    st.markdown(
+        f"""
     - **Page Loaded:** {datetime.now().strftime('%H:%M:%S')}
     - **Last Data:** {freshness_msg.split('(')[0] if '(' in freshness_msg else freshness_msg}
-    """)
+    """
+    )
 
-st.markdown(f"""
+st.markdown(
+    f"""
 <div style='text-align: center; color: #666; padding: 1rem; margin-top: 2rem; border-top: 1px solid #eee;'>
     <small>
         🏫 <strong>Smart Campus Dashboard</strong> | 
@@ -795,4 +831,6 @@ st.markdown(f"""
         Last refresh: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
     </small>
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
