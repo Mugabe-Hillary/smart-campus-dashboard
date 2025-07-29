@@ -1,0 +1,6 @@
+# Minimal requirements for faster builds
+streamlit
+pandas
+plotly
+influxdb-client
+numpy
