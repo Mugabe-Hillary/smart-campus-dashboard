@@ -11,7 +11,7 @@ services:
   instance_size_slug: basic-xxs
   envs:
   - key: DASHBOARD_PASSWORD
-    value: admin123
+    value: your_secure_password_here
     type: SECRET
   http_port: 8080
   routes:

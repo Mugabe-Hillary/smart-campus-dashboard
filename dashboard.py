@@ -321,13 +321,6 @@ with st.spinner('Loading sensor data...'):
     df_class, class_error = fetch_data_from_db("classroom", st.session_state.time_range)
     df_sec, sec_error = fetch_data_from_db("security", st.session_state.time_range)
 
-# Debug information
-if st.checkbox("Show Debug Info"):
-    st.write("Environment data shape:", df_env.shape if not df_env.empty else "Empty")
-    st.write("Environment columns:", list(df_env.columns) if not df_env.empty else "None")
-    if env_error:
-        st.write("Environment error:", env_error)
-
 # --- Enhanced Live Status with Smart Alerts ---
 st.header("📊 Live Sensor Status")
 
