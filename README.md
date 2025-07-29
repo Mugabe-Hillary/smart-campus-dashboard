@@ -4,12 +4,12 @@ A real-time IoT dashboard for monitoring campus environmental data, security sys
 
 ## Features
 
-- **Real-time Monitoring**: Live sensor data from InfluxDB
-- **Environmental Tracking**: Temperature, humidity, and air quality
-- **Security Management**: Motion detection, RFID access control
-- **Classroom Analytics**: Light levels and occupancy
-- **Mobile Responsive**: Works on all devices
-- **Smart Alerts**: Automated notifications for critical conditions
+-   **Real-time Monitoring**: Live sensor data from InfluxDB
+-   **Environmental Tracking**: Temperature, humidity, and air quality
+-   **Security Management**: Motion detection, RFID access control
+-   **Classroom Analytics**: Light levels and occupancy
+-   **Mobile Responsive**: Works on all devices
+-   **Smart Alerts**: Automated notifications for critical conditions
 
 ## Quick Start
 
@@ -43,30 +43,31 @@ streamlit run dashboard.py
 
 ## Configuration
 
-- **DASHBOARD_PASSWORD**: Set via environment variable (default: cisco1234)
-- **InfluxDB**: Pre-configured for cloud instance
-- **Auto-refresh**: Configurable refresh intervals
+-   **DASHBOARD_PASSWORD**: Set via environment variable (default: cisco1234)
+-   **InfluxDB**: Pre-configured for cloud instance
+-   **Auto-refresh**: Configurable refresh intervals
 
 ## Data Sources
 
 The dashboard connects to InfluxDB measurements:
-- `environment`: Temperature, humidity sensors
-- `classroom`: Light levels, occupancy data
-- `security`: Motion detection, RFID access logs
+
+-   `environment`: Temperature, humidity sensors
+-   `classroom`: Light levels, occupancy data
+-   `security`: Motion detection, RFID access logs
 
 ## Security
 
-- Password-protected access
-- Environment variable configuration
-- Secure InfluxDB token management
+-   Password-protected access
+-   Environment variable configuration
+-   Secure InfluxDB token management
 
 ## Tech Stack
 
-- **Frontend**: Streamlit
-- **Database**: InfluxDB Cloud
-- **Visualization**: Plotly
-- **Deployment**: Docker, Digital Ocean
-- **Monitoring**: Real-time auto-refresh
+-   **Frontend**: Streamlit
+-   **Database**: InfluxDB Cloud
+-   **Visualization**: Plotly
+-   **Deployment**: Docker, Digital Ocean
+-   **Monitoring**: Real-time auto-refresh
 
 ## License
 
