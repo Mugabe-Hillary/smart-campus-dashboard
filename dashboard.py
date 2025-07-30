@@ -19,7 +19,11 @@ import os
 import time
 from datetime import datetime, timedelta
 import numpy as np
+import pytz
 from influxdb_client import InfluxDBClient
+
+# --- Timezone Configuration ---
+UGANDA_TZ = pytz.timezone("Africa/Kampala")  # Uganda timezone (EAT - UTC+3)
 
 # --- InfluxDB Configuration ---
 INFLUX_URL = "https://us-east-1-1.aws.cloud2.influxdata.com"
@@ -160,9 +164,6 @@ def check_password():
                 key="password",
                 placeholder="Enter dashboard password",
             )
-            st.info(
-                "💡 Default password: cisco1234 (change via DASHBOARD_PASSWORD env variable)"
-            )
 
             st.markdown("---")
             st.markdown("### 🌟 Features")
@@ -235,6 +236,8 @@ def fetch_data_from_db(measurement, time_range="-1h"):
 
         if "_time" in df.columns:
             df["_time"] = pd.to_datetime(df["_time"])
+            # Convert to Uganda timezone
+            df["_time"] = df["_time"].dt.tz_convert(UGANDA_TZ)
             df = df.set_index("_time")
 
         # Remove metadata columns that aren't needed
@@ -279,7 +282,10 @@ def create_environmental_chart(df):
     fig = make_subplots(
         rows=2,
         cols=1,
-        subplot_titles=("Temperature (°C)", "Humidity (%)"),
+        subplot_titles=(
+            "Temperature (°C) - Uganda Time (EAT)",
+            "Humidity (%) - Uganda Time (EAT)",
+        ),
         vertical_spacing=0.1,
         shared_xaxes=True,
     )
@@ -338,6 +344,57 @@ def test_connection():
         return False, f"Connection failed: {str(e)}"
 
 
+# --- Selective Data Fetching Functions ---
+def get_environment_data():
+    """Fetch only environment data."""
+    return fetch_data_from_db("environment", st.session_state.time_range)
+
+def get_classroom_data():
+    """Fetch only classroom data."""
+    return fetch_data_from_db("classroom", st.session_state.time_range)
+
+def get_security_data():
+    """Fetch only security data."""
+    return fetch_data_from_db("security", st.session_state.time_range)
+
+# --- Initialize session state for selective refresh ---
+def init_refresh_states():
+    """Initialize session state variables for selective refresh."""
+    refresh_keys = ['refresh_env', 'refresh_class', 'refresh_sec', 'refresh_status']
+    for key in refresh_keys:
+        if key not in st.session_state:
+            st.session_state[key] = False
+
+# --- Smart Data Loading with Selective Refresh ---
+def load_data_selectively():
+    """Load data based on refresh states or initial load."""
+    init_refresh_states()
+    
+    # Check if this is the first load or if data doesn't exist in session state
+    first_load = 'df_env' not in st.session_state
+    
+    if first_load or st.session_state.refresh_env:
+        with st.spinner("🌡️ Refreshing environment data..."):
+            st.session_state.df_env, st.session_state.env_error = get_environment_data()
+        st.session_state.refresh_env = False
+        
+    if first_load or st.session_state.refresh_class:
+        with st.spinner("📚 Refreshing classroom data..."):
+            st.session_state.df_class, st.session_state.class_error = get_classroom_data()
+        st.session_state.refresh_class = False
+        
+    if first_load or st.session_state.refresh_sec:
+        with st.spinner("🔒 Refreshing security data..."):
+            st.session_state.df_sec, st.session_state.sec_error = get_security_data()
+        st.session_state.refresh_sec = False
+    
+    return (
+        st.session_state.df_env, st.session_state.env_error,
+        st.session_state.df_class, st.session_state.class_error,
+        st.session_state.df_sec, st.session_state.sec_error
+    )
+
+
 # --- Data Freshness Check ---
 def check_data_freshness(df_list):
     """Check if data is fresh (updated within last 10 minutes)."""
@@ -353,7 +410,13 @@ def check_data_freshness(df_list):
         return False, "No valid timestamps found"
 
     latest_time = max(latest_times)
-    now = pd.Timestamp.now(tz=latest_time.tz if latest_time.tz else None)
+    # Convert to Uganda timezone for comparison
+    if latest_time.tz is None:
+        latest_time = latest_time.tz_localize("UTC").tz_convert(UGANDA_TZ)
+    else:
+        latest_time = latest_time.tz_convert(UGANDA_TZ)
+
+    now = datetime.now(UGANDA_TZ)
     time_diff = now - latest_time
 
     # Check if data is older than 10 minutes
@@ -428,6 +491,7 @@ with st.sidebar:
     data_status_placeholder = st.empty()
     st.caption("⏰ Shows 24-hour history when live data unavailable (>10min old)")
     st.caption("🔄 Auto-refresh attempts to restore live connection")
+    st.caption("🌍 All times shown in East Africa Time (EAT/UTC+3)")
 
     # Settings section
     st.subheader("Settings")
@@ -461,6 +525,31 @@ with st.sidebar:
     if st.button("🔄 Manual Refresh"):
         st.cache_data.clear()
         st.rerun()
+
+    # Selective refresh controls
+    st.subheader("⚡ Selective Refresh")
+    init_refresh_states()
+    
+    refresh_col1, refresh_col2 = st.columns(2)
+    with refresh_col1:
+        if st.button("🌡️ Environment", key="refresh_env"):
+            st.session_state.refresh_environment = True
+            st.rerun()
+        
+        if st.button("🔒 Security", key="refresh_sec"):
+            st.session_state.refresh_security = True
+            st.rerun()
+    
+    with refresh_col2:
+        if st.button("🏫 Classroom", key="refresh_class"):
+            st.session_state.refresh_classroom = True
+            st.rerun()
+        
+        if st.button("🔄 All Data", key="refresh_all"):
+            st.session_state.refresh_environment = True
+            st.session_state.refresh_classroom = True
+            st.session_state.refresh_security = True
+            st.rerun()
 
     st.divider()
 
@@ -498,31 +587,16 @@ with col2:
     else:
         st.metric("Status", "🔴 Offline")
 with col3:
-    st.write(f"**Last Updated:** {datetime.now().strftime('%H:%M:%S')}")
+    uganda_time = datetime.now(UGANDA_TZ)
+    st.write(f"**Uganda Time:** {uganda_time.strftime('%H:%M:%S EAT')}")
+    st.caption(f"Date: {uganda_time.strftime('%Y-%m-%d')}")
 
-# --- Data Fetching with Enhanced Progress Indicator ---
-with st.spinner("🔄 Loading sensor data..."):
-    progress_bar = st.progress(0)
-    status_text = st.empty()
+# --- Data Fetching with Selective Refresh ---
+# Initialize refresh states if not already done
+init_refresh_states()
 
-    status_text.text("Fetching environment data...")
-    progress_bar.progress(25)
-    df_env, env_error = fetch_data_from_db("environment", st.session_state.time_range)
-
-    status_text.text("Fetching classroom data...")
-    progress_bar.progress(50)
-    df_class, class_error = fetch_data_from_db("classroom", st.session_state.time_range)
-
-    status_text.text("Fetching security data...")
-    progress_bar.progress(75)
-    df_sec, sec_error = fetch_data_from_db("security", st.session_state.time_range)
-
-    status_text.text("Processing data...")
-    progress_bar.progress(100)
-
-    # Clear progress indicators
-    progress_bar.empty()
-    status_text.empty()
+# Use selective refresh data loading
+df_env, df_class, df_sec, env_error, class_error, sec_error = load_data_selectively()
 
 # --- Check Data Freshness and Display Status ---
 is_fresh, freshness_msg = check_data_freshness([df_env, df_class, df_sec])
@@ -702,7 +776,7 @@ with tab2:
                 df_class,
                 x=df_class.index,
                 y="light_level",
-                title="💡 Light Level Trends",
+                title="💡 Light Level Trends - Uganda Time (EAT)",
                 color_discrete_sequence=["#ffa726"],
             )
             fig_light.update_layout(
@@ -814,10 +888,12 @@ with col2:
     )
 
 with col3:
-    st.markdown("#### ⏰ Timestamps")
+    st.markdown("#### ⏰ Timestamps (EAT)")
+    uganda_time = datetime.now(UGANDA_TZ)
     st.markdown(
         f"""
-    - **Page Loaded:** {datetime.now().strftime('%H:%M:%S')}
+    - **Page Loaded:** {uganda_time.strftime('%H:%M:%S')}
+    - **Date:** {uganda_time.strftime('%Y-%m-%d')}
     - **Last Data:** {freshness_msg.split('(')[0] if '(' in freshness_msg else freshness_msg}
     """
     )
@@ -828,7 +904,7 @@ st.markdown(
     <small>
         🏫 <strong>Smart Campus Dashboard</strong> | 
         Built with Streamlit & InfluxDB | 
-        Last refresh: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        Last refresh: {datetime.now(UGANDA_TZ).strftime('%Y-%m-%d %H:%M:%S EAT')}
     </small>
 </div>
 """,
