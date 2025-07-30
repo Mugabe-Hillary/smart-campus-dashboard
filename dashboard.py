@@ -360,7 +360,7 @@ def get_security_data():
 # --- Initialize session state for selective refresh ---
 def init_refresh_states():
     """Initialize session state variables for selective refresh."""
-    refresh_keys = ['refresh_env', 'refresh_class', 'refresh_sec', 'refresh_status']
+    refresh_keys = ['refresh_environment', 'refresh_classroom', 'refresh_security']
     for key in refresh_keys:
         if key not in st.session_state:
             st.session_state[key] = False
@@ -370,28 +370,38 @@ def load_data_selectively():
     """Load data based on refresh states or initial load."""
     init_refresh_states()
     
-    # Check if this is the first load or if data doesn't exist in session state
-    first_load = 'df_env' not in st.session_state
+    # Initialize session state variables if they don't exist
+    if 'df_env' not in st.session_state:
+        st.session_state.df_env = pd.DataFrame()
+        st.session_state.env_error = None
+    if 'df_class' not in st.session_state:
+        st.session_state.df_class = pd.DataFrame()
+        st.session_state.class_error = None
+    if 'df_sec' not in st.session_state:
+        st.session_state.df_sec = pd.DataFrame()
+        st.session_state.sec_error = None
     
-    if first_load or st.session_state.refresh_env:
+    # Check if this is the first load or if data doesn't exist in session state
+    first_load = st.session_state.df_env.empty and st.session_state.df_class.empty and st.session_state.df_sec.empty
+    
+    if first_load or st.session_state.refresh_environment:
         with st.spinner("🌡️ Refreshing environment data..."):
             st.session_state.df_env, st.session_state.env_error = get_environment_data()
-        st.session_state.refresh_env = False
+        st.session_state.refresh_environment = False
         
-    if first_load or st.session_state.refresh_class:
+    if first_load or st.session_state.refresh_classroom:
         with st.spinner("📚 Refreshing classroom data..."):
             st.session_state.df_class, st.session_state.class_error = get_classroom_data()
-        st.session_state.refresh_class = False
+        st.session_state.refresh_classroom = False
         
-    if first_load or st.session_state.refresh_sec:
+    if first_load or st.session_state.refresh_security:
         with st.spinner("🔒 Refreshing security data..."):
             st.session_state.df_sec, st.session_state.sec_error = get_security_data()
-        st.session_state.refresh_sec = False
+        st.session_state.refresh_security = False
     
     return (
-        st.session_state.df_env, st.session_state.env_error,
-        st.session_state.df_class, st.session_state.class_error,
-        st.session_state.df_sec, st.session_state.sec_error
+        st.session_state.df_env, st.session_state.df_class, st.session_state.df_sec,
+        st.session_state.env_error, st.session_state.class_error, st.session_state.sec_error
     )
 
 
@@ -534,22 +544,18 @@ with st.sidebar:
     with refresh_col1:
         if st.button("🌡️ Environment", key="refresh_env"):
             st.session_state.refresh_environment = True
-            st.rerun()
         
         if st.button("🔒 Security", key="refresh_sec"):
             st.session_state.refresh_security = True
-            st.rerun()
     
     with refresh_col2:
         if st.button("🏫 Classroom", key="refresh_class"):
             st.session_state.refresh_classroom = True
-            st.rerun()
         
         if st.button("🔄 All Data", key="refresh_all"):
             st.session_state.refresh_environment = True
             st.session_state.refresh_classroom = True
             st.session_state.refresh_security = True
-            st.rerun()
 
     st.divider()
 
