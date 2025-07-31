@@ -16,24 +16,39 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# Import modular components
-from auth import (
-    UserManager,
-    render_login_form,
-    render_user_management,
-    check_permission,
-)
-from database import DatabaseManager, check_data_freshness, UGANDA_TZ
-from components import (
-    create_environmental_chart,
-    create_light_chart,
-    display_data_status,
-    render_live_status,
-    render_quick_stats,
-    render_security_data,
-)
-from utils import init_refresh_states, render_sidebar_controls, render_footer
-from styles import get_dashboard_styles
+# Import modular components with explicit path handling
+import sys
+import os
+
+# Ensure the current directory is in the Python path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
+try:
+    from auth import (
+        UserManager,
+        render_login_form,
+        render_user_management,
+        check_permission,
+    )
+    from database import DatabaseManager, check_data_freshness, UGANDA_TZ
+    from components import (
+        create_environmental_chart,
+        create_light_chart,
+        display_data_status,
+        render_live_status,
+        render_quick_stats,
+        render_security_data,
+    )
+    from utils import init_refresh_states, render_sidebar_controls, render_footer
+    from styles import get_dashboard_styles
+except ImportError as e:
+    st.error(f"Failed to import required modules: {e}")
+    st.error("Please check that all required modules are installed and accessible.")
+    st.info(f"Current working directory: {os.getcwd()}")
+    st.info(f"Python path: {sys.path}")
+    st.stop()
 
 # Apply CSS styles
 st.markdown(get_dashboard_styles(), unsafe_allow_html=True)
