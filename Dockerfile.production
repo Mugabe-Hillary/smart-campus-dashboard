@@ -36,9 +36,12 @@ RUN pip install --upgrade pip setuptools wheel && \
     "streamlit-autorefresh==0.0.1"; \
     fi
 
-# Create necessary directories
+# Create necessary directories and set Python path
 RUN mkdir -p logs data && \
     chmod 755 logs data
+
+# Set Python path for module imports
+ENV PYTHONPATH="/app:$PYTHONPATH"
 
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash app && \

@@ -25,8 +25,9 @@ RUN if [ -f "requirements-modular.txt" ]; then \
     pip install streamlit pandas plotly influxdb-client numpy pytz requests altair; \
     fi
 
-# Create necessary directories
+# Create necessary directories and set Python path
 RUN mkdir -p logs data
+ENV PYTHONPATH="/app:$PYTHONPATH"
 
 # Expose port
 EXPOSE 8501
