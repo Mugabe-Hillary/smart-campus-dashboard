@@ -7,13 +7,23 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python packages
-COPY requirements-modular.txt .
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements-modular.txt
-
-# Copy application files
+# Copy all files first to ensure requirements files are available
 COPY . .
+
+# Check which requirements file exists and use it
+RUN if [ -f "requirements-modular.txt" ]; then \
+    echo "Using requirements-modular.txt"; \
+    pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements-modular.txt; \
+    elif [ -f "requirements.txt" ]; then \
+    echo "Using requirements.txt"; \
+    pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt; \
+    else \
+    echo "No requirements file found, installing basic dependencies"; \
+    pip install --upgrade pip && \
+    pip install streamlit pandas plotly influxdb-client numpy pytz requests altair; \
+    fi
 
 # Create necessary directories
 RUN mkdir -p logs data
