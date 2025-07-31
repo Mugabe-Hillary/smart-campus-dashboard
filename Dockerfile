@@ -51,4 +51,4 @@ RUN echo "=== Directory structure ===" && \
 
 # Run the application using the wrapper script
 WORKDIR /app
-CMD ["python", "/app/run_dashboard.py"]
+CMD ["python", "/app/dashboard.py"]
