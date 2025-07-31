@@ -7,22 +7,16 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python packages step by step
-COPY requirements.txt .
+# Copy requirements and install Python packages
+COPY requirements-modular.txt .
 RUN pip install --upgrade pip
-
-# Install packages individually to avoid conflicts
-RUN pip install --no-cache-dir streamlit==1.28.1
-RUN pip install --no-cache-dir pandas==2.0.3
-RUN pip install --no-cache-dir plotly==5.17.0
-RUN pip install --no-cache-dir influxdb-client==1.38.0
-RUN pip install --no-cache-dir numpy==1.24.3
-RUN pip install --no-cache-dir streamlit-autorefresh==0.0.1
-RUN pip install --no-cache-dir requests==2.31.0
-RUN pip install --no-cache-dir altair==5.1.2
+RUN pip install --no-cache-dir -r requirements-modular.txt
 
 # Copy application files
-COPY dashboard.py .
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p logs data
 
 # Expose port
 EXPOSE 8501

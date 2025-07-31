@@ -1,74 +1,167 @@
-# Smart Campus Dashboard
+# 🏫 Smart Campus Dashboard - Uganda
 
-A real-time IoT dashboard for monitoring campus environmental data, security systems, and classroom conditions.
+A real-time IoT sensor monitoring dashboard for smart campus environments, optimized for Uganda's climate conditions.
 
-## Features
+## ✨ Features
 
--   **Real-time Monitoring**: Live sensor data from InfluxDB
--   **Environmental Tracking**: Temperature, humidity, and air quality
--   **Security Management**: Motion detection, RFID access control
--   **Classroom Analytics**: Light levels and occupancy
--   **Mobile Responsive**: Works on all devices
--   **Smart Alerts**: Automated notifications for critical conditions
+### 🔐 **Multi-User Authentication**
 
-## Quick Start
+-   Role-based access control (Admin, User, Viewer)
+-   Secure password hashing with salt
+-   Session management with timeout
+-   Admin user management panel
 
-### Option 1: Digital Ocean App Platform (Recommended)
+### 📊 **Real-Time Monitoring**
 
-1. Fork this repository
-2. Connect to Digital Ocean App Platform
-3. Set environment variable: `DASHBOARD_PASSWORD=your_secure_password`
-4. Deploy automatically
+-   Live sensor data visualization
+-   Uganda-specific weather thresholds (22-28°C optimal temperature)
+-   Humidity monitoring (40-75% optimal range)
+-   Automatic alerts for threshold violations
+-   Historical data analysis with trend indicators
 
-### Option 2: Docker Deployment
+### 🏗️ **Modular Architecture**
+
+-   Clean separation of concerns
+-   Easy maintenance and extensibility
+-   Environment-based configuration
+-   Comprehensive logging and monitoring
+
+### 🌍 **Uganda Climate Optimization**
+
+-   Temperature thresholds adjusted for tropical climate
+-   Local timezone support (EAT - UTC+3)
+-   Weather patterns suitable for Kampala region
+
+## 🚀 Quick Start
+
+### 1. Setup
 
 ```bash
-# Build and run
-docker build -f Dockerfile.production -t smart-campus-dashboard .
-docker run -p 8501:8501 -e DASHBOARD_PASSWORD=your_password smart-campus-dashboard
+# Clone and setup
+git clone <repository-url>
+cd smart-campus-dashboard
+
+# Run automated setup
+chmod +x setup.sh
+./setup.sh
 ```
 
-### Option 3: Local Development
+### 2. Configuration
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
+# Copy environment template
+cp .env.example .env
 
-# Set environment variable
-export DASHBOARD_PASSWORD=your_password
+# Edit with your InfluxDB credentials
+nano .env
+```
 
-# Run the dashboard
+### 3. Run
+
+```bash
+# Activate virtual environment
+source venv/bin/activate
+
+# Start the dashboard
 streamlit run dashboard.py
 ```
 
-## Configuration
+### 4. Access
 
--   **DASHBOARD_PASSWORD**: Set via environment variable (default: cisco1234)
--   **InfluxDB**: Pre-configured for cloud instance
--   **Auto-refresh**: Configurable refresh intervals
+-   Open: http://localhost:8501
+-   Default admin: `admin` / `cisco6776` (⚠️ **Change immediately!**)
 
-## Data Sources
+## 📋 Requirements
 
-The dashboard connects to InfluxDB measurements:
+-   Python 3.8+
+-   InfluxDB Cloud account
+-   Modern web browser
 
--   `environment`: Temperature, humidity sensors
--   `classroom`: Light levels, occupancy data
--   `security`: Motion detection, RFID access logs
+## 🏗️ Architecture
 
-## Security
+```
+smart-campus-dashboard/
+├── dashboard.py              # Main application entry point
+├── config.py                # Environment configuration
+├── auth/                    # Authentication system
+├── database/               # Database connections
+├── components/             # UI components
+├── utils/                  # Utilities and helpers
+└── styles/                 # CSS styling
+```
 
--   Password-protected access
--   Environment variable configuration
--   Secure InfluxDB token management
+## 🔧 Configuration
 
-## Tech Stack
+Key environment variables in `.env`:
 
--   **Frontend**: Streamlit
--   **Database**: InfluxDB Cloud
--   **Visualization**: Plotly
--   **Deployment**: Docker, Digital Ocean
--   **Monitoring**: Real-time auto-refresh
+```env
+# InfluxDB
+INFLUX_URL=your_influx_url
+INFLUX_TOKEN=your_token
+INFLUX_ORG=your_organization
+INFLUX_BUCKET=your_bucket
 
-## License
+# Security
+DEFAULT_ADMIN_PASSWORD=change_this_password
+PASSWORD_SALT=your_unique_salt
 
-MIT License - see LICENSE file for details.
+# Application
+APP_TITLE=Smart Campus Dashboard
+DEBUG=false
+```
+
+## 🛡️ Security Features
+
+-   **Password Salting**: Secure password storage with unique salt
+-   **Session Management**: Automatic timeout and security checks
+-   **Rate Limiting**: Protection against brute force attacks
+-   **Audit Logging**: Complete activity tracking
+-   **Role-Based Access**: Granular permission system
+
+## 📊 Monitoring & Analytics
+
+-   **Performance Monitoring**: Query execution times and system metrics
+-   **Health Checks**: Automated system health verification
+-   **Audit Trails**: Complete user activity logging
+-   **Error Tracking**: Comprehensive error handling and reporting
+
+## 🌡️ Uganda-Specific Features
+
+### **Climate Thresholds**
+
+-   **Temperature**: 22-28°C (Good), >30°C (High Alert)
+-   **Humidity**: 40-75% (Optimal for tropical climate)
+-   **Timezone**: Africa/Kampala (EAT - UTC+3)
+
+### **Local Optimization**
+
+-   Weather patterns suitable for Uganda
+-   Regional alert thresholds
+-   Local time display and scheduling
+
+## 📚 Documentation
+
+-   **[Deployment Guide](DEPLOYMENT.md)**: Production deployment instructions
+-   **[Modular Architecture](README_MODULAR.md)**: Detailed architecture documentation
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open Pull Request
+
+## 📞 Support
+
+-   **Technical Issues**: Check DEPLOYMENT.md troubleshooting section
+-   **Documentation**: Review README_MODULAR.md for detailed information
+-   **Configuration**: Refer to .env.example for all available settings
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**🇺🇬 Built for Smart Campus Initiative - Uganda**
