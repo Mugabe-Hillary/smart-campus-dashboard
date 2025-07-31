@@ -43,4 +43,4 @@ EXPOSE 8501
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
 # Use the wrapper script to run the application
-CMD ["python", "/app/dashboard.py"]
+CMD ["python", "/app/run_dashboard.py"]

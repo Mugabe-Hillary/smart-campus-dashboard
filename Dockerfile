@@ -32,8 +32,8 @@ RUN mkdir -p logs data
 ENV PYTHONPATH="/app"
 ENV PYTHONUNBUFFERED=1
 
-# Make the run script executable
-RUN chmod +x /app/run_dashboard.py
+# Add a root __init__.py to ensure app directory is treated as a package
+RUN touch /app/__init__.py
 
 # Expose port
 EXPOSE 8501
@@ -41,14 +41,6 @@ EXPOSE 8501
 # Health check
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
-# Debug: List directory structure and test imports before running
-RUN echo "=== Directory structure ===" && \
-    ls -la /app && \
-    echo "=== Module directories ===" && \
-    ls -la /app/auth /app/database /app/components /app/utils /app/styles && \
-    echo "=== Testing imports ===" && \
-    cd /app && python -c "import sys; print('Python path:', sys.path); import auth; import database; import components; print('All imports successful')"
-
-# Run the application using the wrapper script
+# Run the application directly with Streamlit
 WORKDIR /app
-CMD ["python", "/app/dashboard.py"]
+CMD ["streamlit", "run", "dashboard.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]

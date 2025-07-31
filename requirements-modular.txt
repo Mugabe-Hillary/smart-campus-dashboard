@@ -1,0 +1,38 @@
+# Requirements for Smart Campus Dashboard - Enhanced Modular Version
+# Python 3.12 compatible versions
+
+# Streamlit and web framework
+streamlit>=1.28.1
+streamlit-autorefresh==0.0.1
+
+# Data processing and analysis - Python 3.12 compatible versions
+pandas>=2.1.0
+numpy>=1.25.0
+
+# Visualization
+plotly>=5.17.0
+altair>=5.1.2
+
+# Database connectivity
+influxdb-client>=1.38.0
+
+# Utilities and networking
+requests>=2.31.0
+pytz>=2023.3
+
+# System monitoring and performance
+psutil>=5.9.5
+
+# Additional utilities for enhanced architecture
+typing-extensions>=4.7.0
+python-dotenv>=1.0.0
+
+# Optional: For email notifications (uncomment if needed)
+# smtplib is built-in, but you might want:
+# email-validator==2.0.0
+
+# Development and testing (optional)
+# pytest==7.4.0
+# pytest-streamlit==0.1.0
+# black==23.7.0
+# flake8==6.0.0
