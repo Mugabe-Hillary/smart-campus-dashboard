@@ -84,9 +84,6 @@ def render_login_form(user_manager: UserManager) -> bool:
         - 🌡️ **Environmental tracking** (temperature, humidity)  
         - 💡 **Classroom analytics** (light levels, occupancy)
         - 🔒 **Security management** (motion, RFID access)
-        - 📱 **Mobile responsive** design
-        - ⚡ **Auto-refresh** capabilities
-        - 👥 **Multi-user access** with role-based permissions
         """
         )
 
